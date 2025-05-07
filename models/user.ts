@@ -13,6 +13,11 @@ const userSchema = new Schema(
       lowercase: true,
     },
     password: { type: String, required: true, min: 6 },
+    subscription: {
+      plan: { type: String, enum: ["free", "premium"], default: "free" },
+      status: { type: String, enum: ["active", "canceled"], default: "active" },
+      paystackCustomerId: { type: String },
+    },
     manageOTP: {
       otp: { type: Number },
       otpDate: { type: Number },

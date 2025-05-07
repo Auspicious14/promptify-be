@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 export const appRoute = express();
 import authRouter from "./routes/auth";
 import promptRouter from "./routes/prompt";
+import subscriptionRouter from "./routes/subscription";
 
 dotenv.config();
 const allowedOrigins = process.env.CLIENT_URL
@@ -42,3 +43,4 @@ appRoute.get("/", (req, res) => {
 });
 appRoute.use(authRouter);
 appRoute.use(promptRouter);
+appRoute.use(subscriptionRouter);
