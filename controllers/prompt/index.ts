@@ -4,11 +4,20 @@ import promptModel from "../../models/prompt";
 
 export const refinePromptWithAI = async (req: Request, res: Response) => {
   const { prompt, domain, llm } = req.body;
+  const userId = (req as any).user.id
+  
   if (!prompt) res.status(400).json({ error: "Prompt is required." });
+  
   try {
-    const refined = await refinePrompt({ prompt, domain, llm });
+    const user = await userModel.findById(userId)
+
+    if (!user) res.status(401).json({success: false, message: "Unauthorized"})
+
+    const isPremium = user?.subscription?.plan === "premium" && user?.subscription?.status === "active" ? true : false
+
+    const refined = await refinePrompt({ prompt, domain, llm, isPremium });
     const data = await promptModel.create({
-      userId: (req as any).user.id,
+      userId,
       prompt: refined,
     });
     res.json({ success: true, data });
