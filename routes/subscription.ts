@@ -9,7 +9,7 @@ import { checkSubscription } from "../middlewares/subscription";
 
 const router = express.Router();
 
-router.post("/initialize", authenticateToken, initializeSubscription);
+router.post("/subscribe", authenticateToken, initializeSubscription);
 router.get("/verify/:reference", authenticateToken, verifyPayment);
 router.post("/webhook", handleWebhook);
 router.get("/upgrade", authenticateToken, checkSubscription, (req, res) => {
