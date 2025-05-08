@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { refinePrompt } from "../../utils/refinePrompt";
 import promptModel from "../../models/prompt";
+import userModel from "../../models/user"
 
 export const refinePromptWithAI = async (req: Request, res: Response) => {
   const { prompt, domain, llm } = req.body;
