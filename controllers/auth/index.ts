@@ -49,12 +49,12 @@ export const login = async (req: Request, res: Response) => {
       maxAge: 1000 * 60 * 60 * 24 * 3,
     });
 
-    res.cookie("auth_guard", true, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 1000 * 60 * 60 * 24 * 3,
-    });
+    // res.cookie("auth_guard", true, {
+    //   httpOnly: false,
+    //   secure: process.env.NODE_ENV === "production",
+    //   sameSite: "strict",
+    //   maxAge: 1000 * 60 * 60 * 24 * 3,
+    // });
 
     res.json({
       message: "success",
