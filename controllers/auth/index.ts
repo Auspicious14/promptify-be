@@ -46,7 +46,6 @@ export const login = async (req: Request, res: Response) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "none",
-      domain: "https://promptify-be.vercel.app",
       maxAge: 1000 * 60 * 60 * 24 * 3,
     });
 
