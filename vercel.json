@@ -11,5 +11,21 @@
       "src": "/.*",
       "dest": "server.ts"
     }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Credentials", "value": "true" },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://promptiify.vercel.app"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT"
+        }
+      ]
+    }
   ]
 }
