@@ -210,3 +210,11 @@ export const updateUser = async (req: Request, res: Response) => {
     res.json({ success: false, error });
   }
 };
+
+export const checkAuth = async (req: Request, res: Response) => {
+  const user = await userModel
+    .findById((req as any).user.id)
+    .select("-password");
+  if (!user) res.json({ success: false, authenticated: false });
+  res.json({ success: true, authenticated: true, data: user });
+};
