@@ -9,6 +9,7 @@ const propmtSchema = new Schema(
       ref: "user",
       required: true,
     },
+    raw: { type: String, required: true },
     prompt: { type: String, required: true },
   },
   { timestamps: true }
