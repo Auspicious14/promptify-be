@@ -45,7 +45,7 @@ export const login = async (req: Request, res: Response) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "None" as "none",
+      sameSite: "lax",
       domain:
         process.env.NODE_ENV === "production"
           ? "promptify-be.vercel.app"
