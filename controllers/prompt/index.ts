@@ -24,6 +24,7 @@ export const refinePromptWithAI = async (req: Request, res: Response) => {
     const refined = await refinePrompt({ prompt, domain, llm, isPremium });
     const data = await promptModel.create({
       userId,
+      raw: prompt,
       prompt: refined,
     });
     res.json({ success: true, data });
@@ -35,7 +36,7 @@ export const refinePromptWithAI = async (req: Request, res: Response) => {
 export const getPrompts = async (req: Request, res: Response) => {
   try {
     const prompts = await promptModel.find({ userId: (req as any).user.id });
-    res.json({ success: true, prompts });
+    res.json({ success: true, dsta: prompts });
   } catch (error) {
     res.status(500).json({ success: false, error });
   }
