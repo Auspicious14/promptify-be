@@ -5,18 +5,24 @@ import { v4 as uuidv4 } from "uuid";
 
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY!;
 const PAYSTACK_PUBLIC = process.env.PAYSTACK_PUBLIC_KEY!;
-const FRONTEND_URL = process.env.FRONTEND_URL!;
+const FRONTEND_URL = process.env.CLIENT_URL!;
 
 export const initializeSubscription = async (req: Request, res: Response) => {
   try {
-    const { email, plan } = req.body;
+    const { plan } = req.body;
     const transactionRef = `sub_${uuidv4()}`;
+    const userId = (req as any).user.id;
 
+    if (!userId) res.json({ success: false, message: "Unauthenticated" });
+
+    const user = await userModel.findById(userId);
+
+    if (!user) res.json({ success: false, message: "Unauthorised" });
     const response = await axios.post(
       "https://api.paystack.co/transaction/initialize",
       {
-        email,
-        amount: plan === "premium" ? 299900 : 0,
+        email: user?.email,
+        amount: plan === "premium" ? 2000 : 0,
         reference: transactionRef,
         callback_url: `${FRONTEND_URL}/verify-payment`,
       },
