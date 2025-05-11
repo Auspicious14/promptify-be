@@ -22,7 +22,7 @@ export const initializeSubscription = async (req: Request, res: Response) => {
       "https://api.paystack.co/transaction/initialize",
       {
         email: user?.email,
-        amount: plan === "premium" ? 2000 : 0,
+        amount: plan === "premium" ? 2000 * 100 : 0,
         reference: transactionRef,
         callback_url: `${FRONTEND_URL}/verify-payment`,
       },
@@ -35,9 +35,12 @@ export const initializeSubscription = async (req: Request, res: Response) => {
     );
 
     res.json({
-      authorizationUrl: response.data.data.authorization_url,
-      accessCode: response.data.data.access_code,
-      reference: transactionRef,
+      success: true,
+      data: {
+        authorizationUrl: response.data.data.authorization_url,
+        accessCode: response.data.data.access_code,
+        reference: transactionRef,
+      },
     });
   } catch (error) {
     res.status(500).json({ error: "Payment initialization failed" });
