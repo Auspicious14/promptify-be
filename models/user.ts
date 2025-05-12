@@ -18,6 +18,10 @@ const userSchema = new Schema(
       status: { type: String, enum: ["active", "canceled"], default: "active" },
       paystackCustomerId: { type: String },
     },
+    trialUsage: {
+      count: { type: Number, default: 0 },
+      lastUsed: { type: Date },
+    },
     manageOTP: {
       otp: { type: Number },
       otpDate: { type: Number },
