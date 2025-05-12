@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import axios from "axios";
-import { userModel } from "../models/user";
+import { userModel } from "../../models/user";
 import { v4 as uuidv4 } from "uuid";
 
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY!;
