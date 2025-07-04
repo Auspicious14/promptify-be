@@ -21,6 +21,7 @@ export const refinePromptWithAI = async (req: Request, res: Response) => {
       success: false,
       message: "Prompt is required and must be a string.",
     });
+    return;
   }
 
   if (domain && typeof domain !== "string") {
@@ -28,6 +29,7 @@ export const refinePromptWithAI = async (req: Request, res: Response) => {
       success: false,
       message: "Domain must be a string if provided.",
     });
+    return;
   }
 
   if (llm && typeof llm !== "string") {
@@ -35,6 +37,7 @@ export const refinePromptWithAI = async (req: Request, res: Response) => {
       success: false,
       message: "LLM must be a string if provided.",
     });
+    return;
   }
 
   try {
@@ -44,6 +47,7 @@ export const refinePromptWithAI = async (req: Request, res: Response) => {
         success: false,
         message: "Unauthorized: User not found.",
       });
+      return;
     }
 
     const isPremium =
@@ -59,6 +63,7 @@ export const refinePromptWithAI = async (req: Request, res: Response) => {
           message:
             "Trial limit exceeded. Please upgrade to Premium or try again tomorrow.",
         });
+        return;
       }
 
       user.trialUsage = user.trialUsage ?? { count: 0 };

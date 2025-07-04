@@ -12,6 +12,7 @@ const userSchema = new Schema(
       unique: true,
       lowercase: true,
     },
+    message: { type: String },
     password: { type: String, required: true, min: 6 },
     subscription: {
       plan: { type: String, enum: ["free", "premium"], default: "free" },

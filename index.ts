@@ -6,6 +6,8 @@ export const appRoute = express();
 import authRouter from "./routes/auth";
 import promptRouter from "./routes/prompt";
 import subscriptionRouter from "./routes/subscription";
+import { getTrialUsage, resetAllTrialUsage } from "./controllers/usage.ts";
+import { Cron } from "croner";
 
 dotenv.config();
 const allowedOrigins = process.env.CLIENT_URL
@@ -44,3 +46,8 @@ appRoute.get("/", (req, res) => {
 appRoute.use(authRouter);
 appRoute.use(promptRouter);
 appRoute.use(subscriptionRouter);
+// Run at 3 AM when traffic is typically lowest
+// Split users into batches to avoid performance impact
+new Cron("0 3 * * *", async () => {
+  await resetAllTrialUsage();
+}).schedule();

@@ -38,3 +38,65 @@ export const getTrialUsage = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+export const resetAllTrialUsage = async () => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Only update users whose lastUsed is not from today
+    await userModel.updateMany(
+      {
+        $or: [
+          {
+            $and: [
+              {
+                $or: [
+                  { "subscription.plan": "free" },
+                  { "subscription.plan": { $exists: false } },
+                ],
+              },
+              {
+                $or: [
+                  { "trialUsage.lastUsed": { $lt: today } },
+                  { "trialUsage.lastUsed": { $exists: false } },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        $set: {
+          "trialUsage.count": 0,
+          "trialUsage.lastUsed": new Date(),
+          // "message": "Your trial credits have been reset. Subscribe to our premium plan for unlimited access!"
+        },
+      }
+    );
+
+    await userModel.updateMany(
+      {
+        $and: [
+          {
+            $or: [
+              { "subscription.plan": "free" },
+              { "subscription.plan": { $exists: false } },
+            ],
+          },
+          { "trialUsage.count": { $gte: 3 } },
+        ],
+      },
+      {
+        $set: {
+          message:
+            "You've used up your trial credits. Subscribe now to continue using our premium features!",
+        },
+      }
+    );
+
+    console.log("Trial usage reset for users from previous days");
+  } catch (err) {
+    console.error("Error resetting trial usage for users", err);
+  }
+};
