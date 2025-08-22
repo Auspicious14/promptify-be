@@ -6,29 +6,44 @@ export const checkTrialLimit = async (
   res: Response,
   next: NextFunction
 ) => {
-  const userId = (req as any).user?.id;
-  const user: any = await userModel.findById(userId);
+  try {
+    const userId = (req as any).user?.id;
+    const user: any = await userModel.findById(userId);
 
-  if (!user) res.status(401).json({ success: false, message: "Unauthorized" });
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
 
-  if (user.subscription.plan === "premium") next();
+    // Premium users bypass trial limits
+    if (user.subscription?.plan === "premium" && user.subscription?.status === "active") {
+      return next();
+    }
 
-  const today = new Date().toDateString();
-  const lastUsed = user.usage?.lastUsed?.toDateString();
+    const today = new Date().toDateString();
+    const lastUsed = user.trialUsage?.lastUsed?.toDateString();
 
-  if (today !== lastUsed) {
-    user.usage = { count: 1, lastUsed: new Date() };
-  } else {
-    if (user.usage.count >= 3) {
-      res.status(403).json({
+    // Reset for new day
+    if (today !== lastUsed) {
+      user.trialUsage = { count: 1, lastUsed: new Date() };
+      await user.save();
+      return next();
+    }
+
+    // Check if limit exceeded
+    const currentCount = user.trialUsage?.count || 0;
+    if (currentCount >= 3) {
+      return res.status(403).json({
         success: false,
-        message:
-          "You have exhausted your free trial for today. Come back tomorrow or subscribe to premium.",
+        message: "You have exhausted your free trial for today. Come back tomorrow or subscribe to premium.",
       });
     }
-    user.trialUsage.count += 1;
-  }
 
-  await user.save();
-  next();
+    // Increment usage
+    user.trialUsage.count = currentCount + 1;
+    await user.save();
+    next();
+  } catch (error) {
+    console.error("Error in checkTrialLimit:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
 };
