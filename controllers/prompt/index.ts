@@ -50,38 +50,46 @@ export const refinePromptWithAI = async (req: Request, res: Response) => {
       return;
     }
 
-    const isPremium =
-      user &&
-      user.subscription?.plan === "premium" &&
-      user.subscription?.status === "active";
+const isPremium =
+  user &&
+  user.subscription?.plan === "premium" &&
+  user.subscription?.status === "active";
 
-    if (user && !isPremium) {
-      const trialCount = user.trialUsage?.count ?? 0;
-      if (trialCount >= TRIAL_LIMIT) {
-        res.status(403).json({
-          success: false,
-          message:
-            "Trial limit exceeded. Please upgrade to Premium or try again tomorrow.",
-        });
-        return;
-      }
+if (user && !isPremium) {
+  // Check if we need to reset for a new day
+  const today = new Date().toDateString();
+  const lastUsed = user.trialUsage?.lastUsed?.toDateString();
+  
+  if (today !== lastUsed) {
+    // Reset for new day
+    user.trialUsage = { count: 0, lastUsed: new Date() };
+    await user.save();
+  }
 
-      user.trialUsage = user.trialUsage ?? { count: 0 };
-      user.trialUsage.count += 1;
-      await user.save();
-    }
-
-    const refined = await refinePrompt({
-      prompt,
-      domain,
-      llm: llm as LLM,
-      isPremium: isPremium as boolean,
+  const trialCount = user.trialUsage?.count ?? 0;
+  if (trialCount >= TRIAL_LIMIT) {
+    return res.status(403).json({
+      success: false,
+      message: "Trial limit exceeded. Please upgrade to Premium or try again tomorrow.",
     });
-    const data = await promptModel.create({
-      userId,
-      raw: prompt,
-      prompt: refined,
-    });
+  }
+
+  user.trialUsage.count += 1;
+  await user.save();
+}
+
+const refined = await refinePrompt({
+  prompt,
+  domain,
+  llm: llm as LLM,
+  isPremium: isPremium as boolean,
+});
+
+const data = await promptModel.create({
+  userId,
+  raw: prompt,
+  prompt: refined,
+});
 
     res.status(200).json({ success: true, data });
   } catch (error) {
