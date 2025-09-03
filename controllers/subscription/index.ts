@@ -4,31 +4,44 @@ import { userModel } from "../../models/user";
 import { v4 as uuidv4 } from "uuid";
 
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY!;
-const PAYSTACK_PUBLIC = process.env.PAYSTACK_PUBLIC_KEY!;
 const FRONTEND_URL = process.env.CLIENT_URL!;
 
 export const initializeSubscription = async (req: Request, res: Response) => {
   try {
     const { plan } = req.body;
-    const transactionRef = `sub_${uuidv4()}`;
     const userId = (req as any).user.id;
 
-    if (!userId) res.json({ success: false, message: "Unauthenticated" });
+    if (plan !== "premium") {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid plan specified." });
+    }
+
+    if (!userId) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthenticated" });
+    }
 
     const user = await userModel.findById(userId);
 
-    if (!user) res.json({ success: false, message: "Unauthorised" });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const transactionRef = `sub_${uuidv4()}`;
     const response = await axios.post(
       "https://api.paystack.co/transaction/initialize",
       {
-        email: user?.email,
-        amount: plan === "premium" ? 2000 * 100 : 0,
+        email: user.email,
+        amount: 3000 * 100, // 3000 NGN in kobo
         reference: transactionRef,
         callback_url: `${FRONTEND_URL}/verify-payment`,
+        currency: "NGN",
       },
       {
         headers: {
-          Authorization: `Bearer ${PAYSTACK_PUBLIC}`,
+          Authorization: `Bearer ${PAYSTACK_SECRET}`,
           "Content-Type": "application/json",
         },
       }
@@ -42,14 +55,21 @@ export const initializeSubscription = async (req: Request, res: Response) => {
         reference: transactionRef,
       },
     });
-  } catch (error) {
-    res.status(500).json({ error: "Payment initialization failed" });
+  } catch (error: any) {
+    console.error("Payment initialization failed:", error);
+    res.status(500).json({
+      success: false,
+      message: "Payment initialization failed. Please try again later.",
+      error: error.message,
+    });
   }
 };
 
 export const verifyPayment = async (req: Request, res: Response) => {
   try {
     const { reference } = req.params;
+    const userId = (req as any).user.id;
+
     const response = await axios.get(
       `https://api.paystack.co/transaction/verify/${reference}`,
       {
@@ -60,27 +80,44 @@ export const verifyPayment = async (req: Request, res: Response) => {
     );
 
     if (response.data.data.status === "success") {
-      await userModel.findByIdAndUpdate((req as any).user.id, {
-        "subscription.plan": "premium",
-        "subscription.paystackCustomerId": response.data.data.customer.id,
+      await userModel.findByIdAndUpdate(userId, {
+        subscription: {
+          plan: "premium",
+          status: "active",
+          paystackCustomerId: response.data.data.customer.id,
+        },
       });
+      return res.json({ success: true, message: "Payment successful" });
+    } else {
+      return res
+        .status(400)
+        .json({ success: false, message: "Payment verification failed." });
     }
-
-    res.json(response.data);
-  } catch (error) {
-    res.status(500).json({ error: "Payment verification failed" });
+  } catch (error: any) {
+    console.error("Payment verification failed:", error);
+    res.status(500).json({
+      success: false,
+      message: "Payment verification failed. Please try again later.",
+      error: error.message,
+    });
   }
 };
 
 export const handleWebhook = async (req: Request, res: Response) => {
   const event = req.body;
 
-  if (event.event === "charge.success") {
+  // It's a good practice to verify the webhook signature here
+
+  if (event && event.event === "charge.success") {
     const customerId = event.data.customer.id;
-    await userModel.findOneAndUpdate(
-      { "subscription.paystackCustomerId": customerId },
-      { "subscription.status": "active" }
-    );
+    const plan = event.data.plan; // You might need to adjust this based on your webhook payload
+
+    if (plan === "premium") {
+      await userModel.findOneAndUpdate(
+        { "subscription.paystackCustomerId": customerId },
+        { "subscription.status": "active" }
+      );
+    }
   }
 
   res.sendStatus(200);

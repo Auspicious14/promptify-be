@@ -50,33 +50,10 @@ export const refinePromptWithAI = async (req: Request, res: Response) => {
       return;
     }
 
-const isPremium =
-  user &&
-  user.subscription?.plan === "premium" &&
-  user.subscription?.status === "active";
-
-if (user && !isPremium) {
-  // Check if we need to reset for a new day
-  const today = new Date().toDateString();
-  const lastUsed = user.trialUsage?.lastUsed?.toDateString();
-  
-  if (today !== lastUsed) {
-    // Reset for new day
-    user.trialUsage = { count: 0, lastUsed: new Date() };
-    await user.save();
-  }
-
-  const trialCount = user.trialUsage?.count ?? 0;
-  if (trialCount >= TRIAL_LIMIT) {
-    return res.status(403).json({
-      success: false,
-      message: "Trial limit exceeded. Please upgrade to Premium or try again tomorrow.",
-    });
-  }
-
-  user.trialUsage.count += 1;
-  await user.save();
-}
+    const isPremium =
+      user &&
+      user.subscription?.plan === "premium" &&
+      user.subscription?.status === "active";
 
 const refined = await refinePrompt({
   prompt,
