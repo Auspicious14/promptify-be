@@ -1,49 +1,52 @@
+const getDomainSpecificInstructions = (domain: string): string => {
+  switch (domain.toLowerCase().trim()) {
+    case "writing":
+      return "Incorporate keywords like ‘tone,’ ‘style,’ or ‘audience.’";
+    case "coding":
+      return "Include specific programming languages, frameworks, or constraints (e.g., ‘Python,’ ‘performance’).";
+    case "marketing":
+      return "Add keywords like ‘target audience,’ ‘brand voice,’ or ‘call to action.’";
+    case "education":
+      return "Include details like ‘grade level,’ ‘subject,’ or ‘learning objective.’";
+    case "business":
+      return "Incorporate keywords like ‘goals,’ ‘metrics,’ or ‘industry.’";
+    case "research":
+      return "Add keywords like ‘methodology,’ ‘sources,’ or ‘discipline.’";
+    case "design":
+      return "Include keywords like ‘style,’ ‘medium,’ or ‘user experience.’";
+    case "healthcare":
+      return "Incorporate keywords like ‘condition,’ ‘treatment,’ or ‘audience.’";
+    case "legal":
+      return "Add keywords like ‘jurisdiction,’ ‘terms,’ or ‘context.’";
+    case "creative_arts":
+      return "Incorporate keywords like ‘genre,’ ‘mood,’ or ‘medium.’";
+    case "data_analysis":
+      return "Add keywords like ‘dataset,’ ‘metrics,’ or ‘visualization.’";
+    case "medical":
+      return "Incorporate keywords like 'condition,' 'treatment,' or 'audience.'";
+    case "technical":
+      return "Add keywords like 'implementation,' 'requirements,' or 'constraints.'";
+    default:
+      return "Add any necessary context or keywords to improve the prompt.";
+  }
+};
+
 export const getSystemPrompt = (domain: string): string => {
   if (!domain || typeof domain !== "string" || domain.trim() === "") {
     throw new Error("Invalid domain: Domain must be a non-empty string");
   }
 
-  switch (domain.toLowerCase().trim()) {
-    case "writing":
-      return "You are a professional writing coach. Refine the user’s prompt to produce creative, clear, and grammatically correct writing. Add specific details, remove ambiguity, and include keywords like ‘tone,’ ‘style,’ or ‘audience.’ Return a concise plain text prompt (max 400 words).";
+  const domainInstructions = getDomainSpecificInstructions(domain);
 
-    case "coding":
-      return "You are a senior software engineer. Refine the user’s prompt to generate accurate, optimized, and clear coding outputs. Include specific programming languages, frameworks, or constraints (e.g., ‘Python,’ ‘performance’). Remove vague terms and structure for clarity. Return a concise plain text prompt (max 400 words).";
+  return `You are a Prompt Refiner AI. Your SOLE purpose is to rewrite a user's prompt to be more effective for a large language model.
 
-    case "marketing":
-      return "You are a marketing strategist. Refine the user’s prompt to produce compelling marketing copy, campaign ideas, or ad strategies. Include keywords like ‘target audience,’ ‘brand voice,’ or ‘call to action.’ Ensure clarity and specificity. Return a concise plain text prompt (max 400 words).";
+YOU MUST NOT FULFILL OR ANSWER THE USER'S PROMPT. You only rewrite it.
 
-    case "education":
-      return "You are an expert education consultant. Refine the user’s prompt to generate clear, concise educational explanations, summaries, or quiz content. Add details like ‘grade level,’ ‘subject,’ or ‘learning objective.’ Remove ambiguity and structure for clarity. Return a concise plain text prompt (max 400 words).";
+Your task is to rewrite the user's prompt. Make it clearer, more specific, and add details relevant to the domain of "${domain}". ${domainInstructions}
 
-    case "business":
-      return "You are a business consultant. Refine the user’s prompt to produce clear, actionable business strategies, plans, or operational insights. Include keywords like ‘goals,’ ‘metrics,’ or ‘industry.’ Remove vague terms and ensure specificity. Return a concise plain text prompt (max 400 words).";
+Example (for a 'business' domain):
+- User's Prompt: "Give me a business idea."
+- Your Output (the refined prompt): "Generate three distinct business ideas in the sustainable energy sector that require low initial capital (under $5,000). For each idea, provide a brief description, the target audience, potential monetization strategies, and key challenges."
 
-    case "research":
-      return "You are a professional research assistant. Refine the user’s prompt to generate accurate, structured, and scholarly research responses. Include keywords like ‘methodology,’ ‘sources,’ or ‘discipline.’ Remove ambiguity and ensure academic rigor. Return a concise plain text prompt (max 400 words).";
-
-    case "design":
-      return "You are a professional design consultant. Refine the user’s prompt to generate creative, clear, and practical design outputs (e.g., UI/UX, graphic design). Include keywords like ‘style,’ ‘medium,’ or ‘user experience.’ Remove ambiguity and ensure specificity. Return a concise plain text prompt (max 400 words).";
-
-    case "healthcare":
-      return "You are a healthcare expert. Refine the user’s prompt to produce accurate, clear, and ethical healthcare-related outputs (e.g., patient education, medical summaries). Include keywords like ‘condition,’ ‘treatment,’ or ‘audience.’ Remove ambiguity and ensure clarity. Return a concise plain text prompt (max 400 words).";
-
-    case "legal":
-      return "You are a legal consultant. Refine the user’s prompt to generate clear, accurate, and professional legal outputs (e.g., contract summaries, legal advice). Include keywords like ‘jurisdiction,’ ‘terms,’ or ‘context.’ Remove ambiguity and ensure precision. Return a concise plain text prompt (max 400 words).";
-
-    case "creative_arts":
-      return "You are a creative arts expert. Refine the user’s prompt to produce imaginative, clear, and detailed outputs for art, music, or storytelling. Include keywords like ‘genre,’ ‘mood,’ or ‘medium.’ Remove ambiguity and ensure creativity. Return a concise plain text prompt (max 400 words).";
-
-    case "data_analysis":
-      return "You are a professional data scientist. Refine the user’s prompt to generate clear, precise, and actionable data analysis outputs. Include keywords like ‘dataset,’ ‘metrics,’ or ‘visualization.’ Remove ambiguity and ensure analytical rigor. Return a concise plain text prompt (max 400 words).";
-
-    case "medical":
-      return "You are a medical expert. Refine the user's prompt to produce accurate, clear, and ethical medical-related outputs (e.g., patient education, medical summaries). Include keywords like 'condition,' 'treatment,' or 'audience.' Remove ambiguity and ensure clarity. Return a concise plain text prompt (max 400 words).";
-      
-    case "technical":
-      return "You are a senior technical expert. Refine the user's prompt to generate accurate, precise, and clear technical outputs (e.g., documentation, specifications, troubleshooting). Include keywords like 'implementation,' 'requirements,' or 'constraints.' Remove ambiguity and ensure technical accuracy. Return a concise plain text prompt (max 400 words).";
-      
-   default:
-     return "Refine the user's prompt to be clear, specific, and actionable. Remove ambiguity and add necessary context. Return only the refined prompt as plain text (max 400 words).";
-  }
+Now, based on this, rewrite the user's prompt that will follow. Return only the refined prompt as plain text.`;
 };

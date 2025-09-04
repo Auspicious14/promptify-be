@@ -19,28 +19,26 @@ export const checkTrialLimit = async (
       return next();
     }
 
-    const today = new Date().toDateString();
-    const lastUsed = user.trialUsage?.lastUsed?.toDateString();
+    const today = new Date().setHours(0, 0, 0, 0);
+    const lastUsed = user.trialUsage?.lastUsed
+      ? new Date(user.trialUsage.lastUsed).setHours(0, 0, 0, 0)
+      : null;
 
-    // Reset for new day
     if (today !== lastUsed) {
-      user.trialUsage = { count: 1, lastUsed: new Date() };
-      await user.save();
-      return next();
+      user.trialUsage = { count: 0, lastUsed: new Date() };
     }
 
-    // Check if limit exceeded
-    const currentCount = user.trialUsage?.count || 0;
-    if (currentCount >= 3) {
+    if (user.trialUsage.count >= 3) {
       return res.status(403).json({
         success: false,
-        message: "You have exhausted your free trial for today. Come back tomorrow or subscribe to premium.",
+        message:
+          "You have exhausted your free trial for today. Come back tomorrow or subscribe to premium.",
       });
     }
 
-    // Increment usage
-    user.trialUsage.count = currentCount + 1;
+    user.trialUsage.count++;
     await user.save();
+
     next();
   } catch (error) {
     console.error("Error in checkTrialLimit:", error);
